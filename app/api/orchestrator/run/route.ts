@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+import { POST as evidenceSorterHandler } from "@/app/api/agents/evidence-sorter/route";
+import { POST as clientCommsHandler } from "@/app/api/agents/client-comms/route";
 
 // Orchestrator run endpoint: dispatch pending tasks to their specialist
 // agent endpoints. This simulates a continuous loop, but should be
@@ -8,28 +10,36 @@ import { supabase } from '@/lib/supabase';
 export async function POST() {
   // Select a few pending tasks to dispatch
   const { data: pending } = await supabase
-    .from('tasks')
-    .select('*')
-    .in('status', ['pending'])
+    .from("tasks")
+    .select("*")
+    .in("status", ["pending"])
     .limit(5);
   if (!pending || pending.length === 0) {
     return NextResponse.json({ ok: true, dispatched: 0 });
   }
-  // Dispatch each task by making a fetch call to its agent endpoint
+  // Dispatch each task by calling its agent handler directly
   const runs = pending.map(async (t) => {
-    const path =
-      t.assignee_agent === 'evidence_sorter'
-        ? '/api/agents/evidence-sorter'
-        : '/api/agents/client-comms';
-    await fetch(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: t.id }),
-    });
-    await supabase.from('audit_logs').insert({
-      subject_type: 'task',
+    const handler =
+      t.assignee_agent === "evidence_sorter"
+        ? evidenceSorterHandler
+        : clientCommsHandler;
+
+    // Create a mock request with the taskId
+    const mockRequest = new NextRequest(
+      "http://localhost:3000/api/orchestrator/run",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId: t.id }),
+      }
+    );
+
+    await handler(mockRequest);
+
+    await supabase.from("audit_logs").insert({
+      subject_type: "task",
       subject_id: t.id,
-      action: 'dispatched',
+      action: "dispatched",
       payload: { agent: t.assignee_agent },
     });
   });

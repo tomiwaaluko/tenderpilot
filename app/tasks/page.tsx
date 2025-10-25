@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState } from "react";
+import Nav from "@/components/Nav";
 
 // Tasks page: provides a simple button to trigger the orchestrator loop.
 // In a full implementation this page would list all pending and
@@ -12,15 +13,29 @@ export default function Tasks() {
 
   async function run() {
     setResult(null);
-    const res = await fetch('/api/orchestrator/run', { method: 'POST' });
-    const data = await res.json();
-    setResult(`Dispatched ${data.dispatched} tasks`);
+    try {
+      const res = await fetch("/api/orchestrator/run", { method: "POST" });
+      if (!res.ok) {
+        const text = await res.text();
+        setResult(`Error: ${res.status} - ${text}`);
+        return;
+      }
+      const data = await res.json();
+      setResult(`Dispatched ${data.dispatched} tasks`);
+    } catch (error) {
+      setResult(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
   }
 
   return (
-    <main className="max-w-xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Tasks</h1>
-      <p>This page triggers the orchestrator to dispatch pending tasks.</p>
+    <main className="max-w-xl mx-auto p-6">
+      <Nav />
+      <h1 className="text-2xl font-semibold mb-4">Tasks</h1>
+      <p className="mb-2">
+        This page triggers the orchestrator to dispatch pending tasks.
+      </p>
       <button
         type="button"
         onClick={run}
@@ -28,7 +43,7 @@ export default function Tasks() {
       >
         Run Orchestrator
       </button>
-      {result && <p className="text-sm text-gray-600">{result}</p>}
+      {result && <p className="text-sm text-gray-600 mt-2">{result}</p>}
     </main>
   );
 }

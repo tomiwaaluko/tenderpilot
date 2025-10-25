@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Nav from '@/components/Nav';
 
 // Inbox page: provides a basic form to ingest a message for a case. It
 // immediately triggers classification after ingestion. This page is
@@ -38,8 +39,9 @@ export default function Inbox() {
   }
 
   return (
-    <main className="max-w-xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Inbox</h1>
+    <main className="max-w-xl mx-auto p-6">
+      <Nav />
+      <h1 className="text-2xl font-semibold mb-4">Inbox</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           className="w-full border p-2 rounded"
@@ -63,7 +65,7 @@ export default function Inbox() {
           Submit &amp; Classify
         </button>
       </form>
-      {status && <p className="text-sm text-gray-600">{status}</p>}
+      {status && <p className="text-sm text-gray-600 mt-2">{status}</p>}
     </main>
   );
 }
