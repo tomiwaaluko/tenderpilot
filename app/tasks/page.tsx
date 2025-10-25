@@ -17,14 +17,14 @@ export default function Tasks() {
       const res = await fetch("/api/orchestrator/run", { method: "POST" });
       if (!res.ok) {
         const text = await res.text();
-        setResult(`Error: ${res.status} - ${text}`);
+        setResult(`❌ Error: ${res.status} - ${text}`);
         return;
       }
       const data = await res.json();
-      setResult(`Dispatched ${data.dispatched} tasks`);
+      setResult(`✅ Dispatched ${data.dispatched} tasks`);
     } catch (error) {
       setResult(
-        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+        `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }

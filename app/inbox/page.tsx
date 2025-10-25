@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from 'react';
-import Nav from '@/components/Nav';
+import { useState } from "react";
+import Nav from "@/components/Nav";
 
 // Inbox page: provides a basic form to ingest a message for a case. It
 // immediately triggers classification after ingestion. This page is
 // deliberately simple to keep the demo focused on the agent workflow.
 
 export default function Inbox() {
-  const [caseId, setCaseId] = useState('');
-  const [text, setText] = useState('');
+  const [caseId, setCaseId] = useState("");
+  const [text, setText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -17,25 +17,25 @@ export default function Inbox() {
     setStatus(null);
     // Call ingest API
     const fd = new FormData();
-    fd.append('caseId', caseId);
-    fd.append('text', text);
-    const ingestRes = await fetch('/api/ingest', {
-      method: 'POST',
+    fd.append("caseId", caseId);
+    fd.append("text", text);
+    const ingestRes = await fetch("/api/ingest", {
+      method: "POST",
       body: fd,
     });
     const ingestData = await ingestRes.json();
     if (!ingestData.messageId) {
-      setStatus('Ingest failed');
+      setStatus("❌ Ingest failed");
       return;
     }
     // Call classify API
-    await fetch('/api/classify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ caseId, messageId: ingestData.messageId }),
     });
-    setStatus('Message ingested and classification queued');
-    setText('');
+    setStatus("✅ Message ingested and classification queued");
+    setText("");
   }
 
   return (
