@@ -44,16 +44,20 @@ export async function POST(req: NextRequest) {
   };
   let proposal;
   try {
-    proposal = await callGeminiJSON(
+    const result = await callGeminiJSON(
       CLIENT_COMMS_PROMPT,
       msg.raw_text ?? '',
       mockProposal
     );
+    // Accept the model output if it looks like a proposal, otherwise fall back to mock
+    if (result && (result as any).task_type) {
+      proposal = result;
+    } else {
+      proposal = mockProposal;
+    }
   } catch (err) {
-    return NextResponse.json(
-      { error: (err as Error).message },
-      { status: 500 }
-    );
+    // On error, use the mock proposal
+    proposal = mockProposal;
   }
   const { error } = await supabase
     .from('tasks')

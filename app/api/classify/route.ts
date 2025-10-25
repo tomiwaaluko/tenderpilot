@@ -35,12 +35,22 @@ export async function POST(req: NextRequest) {
   ];
   let candidates;
   try {
-    candidates = await callGeminiJSON(CLASSIFIER_PROMPT, msg.raw_text ?? '', mockCandidates);
-  } catch (err) {
-    return NextResponse.json(
-      { error: (err as Error).message },
-      { status: 500 }
+    const result = await callGeminiJSON(
+      CLASSIFIER_PROMPT,
+      msg.raw_text ?? '',
+      mockCandidates
     );
+    // The Gemini JSON mode should return an array of candidates. If not, fall back to the mock.
+    if (Array.isArray(result)) {
+      candidates = result;
+    } else if (result && Array.isArray((result as any).task_candidates)) {
+      candidates = (result as any).task_candidates;
+    } else {
+      candidates = mockCandidates;
+    }
+  } catch (err) {
+    // On error, use the mock candidates to ensure the flow continues
+    candidates = mockCandidates;
   }
   // Insert tasks for each candidate
   const rows = (candidates as any[]).map((c) => ({
