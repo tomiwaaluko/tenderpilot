@@ -32,7 +32,8 @@ export default function ApprovalsPage() {
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
-      .eq("status", "proposed");
+      .eq("status", "proposed")
+      .order("created_at", { ascending: false });
     if (!error) setTasks((data as TaskRow[]) || []);
     setLoading(false);
   }
@@ -55,7 +56,6 @@ export default function ApprovalsPage() {
       approve ? "✅ Task approved and executed" : "❌ Task rejected"
     );
     await fetchTasks();
-    // Clear message after 3 seconds
     setTimeout(() => setStatusMessage(null), 3000);
   }
 
@@ -129,13 +129,13 @@ export default function ApprovalsPage() {
               <div className="flex gap-2 items-center">
                 <button
                   onClick={() => handleDecision(task.id, true)}
-                  className="border rounded px-3 py-1 bg-green-600 text-white hover:bg-green-700"
+                  className="border rounded px-3 py-1 bg-green-600 text-white hover:bg-green-700 transition-colors"
                 >
                   Approve
                 </button>
                 <button
                   onClick={() => handleDecision(task.id, false)}
-                  className="border rounded px-3 py-1 bg-red-600 text-white hover:bg-red-700"
+                  className="border rounded px-3 py-1 bg-red-600 text-white hover:bg-red-700 transition-colors"
                 >
                   Reject
                 </button>
