@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from 'react';
-import Nav from '@/components/Nav';
+import { useState } from "react";
+import Nav from "@/components/Nav";
+import { useToast } from "@/components/Toast";
 
 // Tasks page: provides a simple button to trigger the orchestrator loop.
 // In a full implementation this page would list all pending and
@@ -9,28 +10,49 @@ import Nav from '@/components/Nav';
 // their agents.
 
 export default function Tasks() {
-  const [result, setResult] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { push } = useToast();
 
   async function run() {
-    setResult(null);
-    const res = await fetch('/api/orchestrator/run', { method: 'POST' });
-    const data = await res.json();
-    setResult(`Dispatched ${data.dispatched} tasks`);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/orchestrator/run", { method: "POST" });
+      const data = await res.json();
+      push({
+        title: "Orchestrator complete",
+        description: `Dispatched ${data.dispatched} tasks`,
+      });
+    } catch (error) {
+      push({
+        title: "Orchestrator failed",
+        description:
+          error instanceof Error ? error.message : "Failed to dispatch tasks",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <main className="max-w-xl mx-auto p-6">
       <Nav />
-      <h1 className="text-2xl font-semibold mb-4">Tasks</h1>
-      <p className="mb-2">This page triggers the orchestrator to dispatch pending tasks.</p>
+      <h1 className="text-2xl font-semibold mb-4">🚀 Tasks</h1>
+      <p className="mb-4 text-gray-600">
+        This page triggers the orchestrator to dispatch pending tasks to
+        specialist agents.
+      </p>
       <button
         type="button"
         onClick={run}
-        className="border rounded px-4 py-2 bg-foreground text-background"
+        disabled={loading}
+        className={`border rounded-xl px-6 py-3 font-medium ${
+          loading
+            ? "opacity-50 cursor-not-allowed bg-gray-400 text-white"
+            : "bg-black text-white hover:bg-gray-800"
+        } transition-colors`}
       >
-        Run Orchestrator
+        {loading ? "Working..." : "Run Orchestrator"}
       </button>
-      {result && <p className="text-sm text-gray-600 mt-2">{result}</p>}
     </main>
   );
 }
