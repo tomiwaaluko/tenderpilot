@@ -1,8 +1,19 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import Nav from "@/components/Nav";
+import Header from "@/components/Header";
 import { supabase } from "@/lib/supabase";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  Settings,
+  Brain,
+  Zap,
+  Clock,
+} from "lucide-react";
 
 interface AuditRow {
   id: string;
@@ -13,32 +24,22 @@ interface AuditRow {
   created_at: string;
 }
 
-// Action pill component with color coding
-function ActionPill({ action }: { action: string }) {
-  const colorMap: Record<string, string> = {
-    approved: "bg-green-100 text-green-800",
-    rejected: "bg-red-100 text-red-800",
-    executed: "bg-blue-100 text-blue-800",
-    created: "bg-gray-100 text-gray-800",
-    classified: "bg-purple-100 text-purple-800",
-    dispatched: "bg-yellow-100 text-yellow-800",
-  };
-  const bg = colorMap[action] || "bg-gray-100 text-gray-800";
-  return (
-    <span
-      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${bg}`}
-    >
-      {action.replace("_", " ")}
-    </span>
-  );
-}
+const actionConfig: Record<
+  string,
+  {
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+    bg: string;
+  }
+> = {
+  approved: { icon: CheckCircle, color: "text-green-700", bg: "bg-green-100" },
+  rejected: { icon: XCircle, color: "text-red-700", bg: "bg-red-100" },
+  executed: { icon: Settings, color: "text-blue-700", bg: "bg-blue-100" },
+  created: { icon: Clock, color: "text-gray-700", bg: "bg-gray-100" },
+  classified: { icon: Brain, color: "text-purple-700", bg: "bg-purple-100" },
+  dispatched: { icon: Zap, color: "text-yellow-700", bg: "bg-yellow-100" },
+};
 
-/**
- * Audit log viewer. Fetches the most recent audit log entries and renders
- * them in a compact timeline view. This gives reviewers visibility into all
- * actions performed by the system and by humans, supporting the
- * human-in-the-loop narrative.
- */
 export default function AuditPage() {
   const [logs, setLogs] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,67 +56,139 @@ export default function AuditPage() {
   }
 
   useEffect(() => {
-    fetchLogs();
-    const interval = setInterval(fetchLogs, 20000);
+    void fetchLogs();
+    const interval = setInterval(() => void fetchLogs(), 20000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      <Nav />
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">📋 Audit Log</h1>
-        <button
-          onClick={fetchLogs}
-          className="text-sm px-3 py-1 border rounded-lg hover:bg-gray-50"
+    <>
+      <Header />
+      <main className="max-w-5xl mx-auto p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          🔄 Refresh
-        </button>
-      </div>
-      {loading && <p className="text-gray-600">Loading audit log…</p>}
-      {!loading && logs.length === 0 && (
-        <p className="text-gray-600">No audit entries found.</p>
-      )}
-
-      {/* Compact timeline view */}
-      <div className="space-y-2">
-        {logs.map((row) => {
-          const reviewer = row.payload?.reviewer as string | undefined;
-          const dispatched = row.payload?.dispatched as number | undefined;
-
-          return (
-            <div
-              key={row.id}
-              className="border-l-4 border-gray-300 pl-4 py-2 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-3">
-                <ActionPill action={row.action} />
-                <span className="text-sm capitalize text-gray-700">
-                  {row.subject_type}
-                </span>
-                <span className="text-xs text-gray-400 font-mono">
-                  {row.subject_id.slice(0, 8)}
-                </span>
-                <span className="text-xs text-gray-500 ml-auto">
-                  {new Date(row.created_at).toLocaleString()}
-                </span>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <FileText className="w-6 h-6 text-gray-600" />
               </div>
-
-              {/* Show relevant payload details */}
-              {reviewer && (
-                <p className="text-xs text-gray-600 mt-1">
-                  Reviewer: {reviewer}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Audit Log</h1>
+                <p className="text-gray-600">
+                  Complete timeline of system actions
                 </p>
-              )}
-              {dispatched !== undefined && (
-                <p className="text-xs text-gray-600 mt-1">
-                  Dispatched {dispatched} task(s)
-                </p>
-              )}
+              </div>
             </div>
-          );
-        })}
-      </div>
-    </main>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={fetchLogs}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span className="text-sm font-medium">Refresh</span>
+            </motion.button>
+          </div>
+
+          {loading && (
+            <div className="text-center py-12">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-gray-600 border-t-transparent rounded-full mx-auto mb-4"
+              />
+              <p className="text-gray-600">Loading audit log…</p>
+            </div>
+          )}
+
+          {!loading && logs.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16 bg-white rounded-xl border border-gray-200"
+            >
+              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-600">No audit entries found.</p>
+            </motion.div>
+          )}
+
+          <div className="relative">
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200" />
+            <div className="space-y-4">
+              {logs.map((row, index) => {
+                const config = actionConfig[row.action] || actionConfig.created;
+                const Icon = config.icon;
+                const reviewer = row.payload?.reviewer as string | undefined;
+                const dispatched = row.payload?.dispatched as
+                  | number
+                  | undefined;
+
+                return (
+                  <motion.div
+                    key={row.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="relative pl-20 group"
+                  >
+                    <div
+                      className={`absolute left-6 w-5 h-5 rounded-full border-4 border-gray-50 ${config.bg} flex items-center justify-center group-hover:scale-125 transition-transform`}
+                    >
+                      <div className="w-2 h-2 bg-gray-600 rounded-full" />
+                    </div>
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className={`${config.bg} p-2 rounded-lg`}>
+                            <Icon className={`w-4 h-4 ${config.color}`} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-gray-900 capitalize">
+                                {row.action.replace("_", " ")}
+                              </span>
+                              <span className="text-sm text-gray-500 capitalize">
+                                {row.subject_type}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <code className="bg-gray-100 px-2 py-0.5 rounded font-mono">
+                                {row.subject_id.slice(0, 8)}
+                              </code>
+                              {reviewer && (
+                                <span className="text-gray-600">
+                                  by {reviewer}
+                                </span>
+                              )}
+                              {dispatched !== undefined && (
+                                <span className="text-gray-600">
+                                  {dispatched} task{dispatched !== 1 ? "s" : ""}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 whitespace-nowrap">
+                          <Clock className="w-3 h-3 inline mr-1" />
+                          {new Date(row.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+      </main>
+    </>
   );
 }
