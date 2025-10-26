@@ -2,13 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Scale, Inbox, Rocket, CheckCircle, FileText } from "lucide-react";
+import {
+  Scale,
+  Inbox,
+  Rocket,
+  CheckCircle,
+  FileText,
+  Activity,
+} from "lucide-react";
 
 const navItems = [
   { href: "/inbox", label: "Inbox", icon: Inbox },
   { href: "/tasks", label: "Tasks", icon: Rocket },
   { href: "/approvals", label: "Approvals", icon: CheckCircle },
   { href: "/audit", label: "Audit", icon: FileText },
+  { href: "/telemetry", label: "Telemetry", icon: Activity },
 ];
 
 export default function Header() {

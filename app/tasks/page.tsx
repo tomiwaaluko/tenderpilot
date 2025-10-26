@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { useToast } from "@/components/Toast";
 import { motion } from "framer-motion";
-import { Rocket, Zap, Brain } from "lucide-react";
+import { Rocket, Zap, Brain, Play, Square } from "lucide-react";
 
 // Tasks page: provides a simple button to trigger the orchestrator loop.
 // In a full implementation this page would list all pending and
@@ -13,7 +13,16 @@ import { Rocket, Zap, Brain } from "lucide-react";
 
 export default function Tasks() {
   const [loading, setLoading] = useState(false);
+  const [watching, setWatching] = useState(false);
   const { push } = useToast();
+
+  useEffect(() => {
+    if (!watching) return;
+    const id = setInterval(async () => {
+      await fetch("/api/loop/tick", { method: "POST" });
+    }, 4000);
+    return () => clearInterval(id);
+  }, [watching]);
 
   async function run() {
     setLoading(true);
@@ -75,38 +84,64 @@ export default function Tasks() {
                 </p>
               </div>
 
-              <motion.button
-                type="button"
-                onClick={run}
-                disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.05 }}
-                whileTap={{ scale: loading ? 1 : 0.95 }}
-                className={`inline-flex items-center gap-3 rounded-xl px-8 py-4 font-semibold text-lg transition-all ${
-                  loading
-                    ? "opacity-50 cursor-not-allowed bg-gray-400 text-white"
-                    : "bg-linear-to-r from-purple-600 to-blue-600 text-white hover:shadow-xl shadow-lg"
-                }`}
-              >
-                {loading ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                      className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
-                    />
-                    Working...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-6 h-6" />
-                    Run Orchestrator
-                  </>
-                )}
-              </motion.button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <motion.button
+                  type="button"
+                  onClick={run}
+                  disabled={loading}
+                  whileHover={{ scale: loading ? 1 : 1.05 }}
+                  whileTap={{ scale: loading ? 1 : 0.95 }}
+                  className={`inline-flex items-center gap-3 rounded-xl px-8 py-4 font-semibold text-lg transition-all ${
+                    loading
+                      ? "opacity-50 cursor-not-allowed bg-gray-400 text-white"
+                      : "bg-linear-to-r from-purple-600 to-blue-600 text-white hover:shadow-xl shadow-lg"
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Working...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-6 h-6" />
+                      Run Orchestrator
+                    </>
+                  )}
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  onClick={() => setWatching(!watching)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`inline-flex items-center gap-3 rounded-xl px-8 py-4 font-semibold text-lg transition-all ${
+                    watching
+                      ? "bg-red-600 text-white hover:shadow-xl shadow-lg"
+                      : "bg-green-600 text-white hover:shadow-xl shadow-lg"
+                  }`}
+                >
+                  {watching ? (
+                    <>
+                      <Square className="w-6 h-6" />
+                      Stop Watcher
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-6 h-6" />
+                      Start Watcher
+                    </>
+                  )}
+                </motion.button>
+              </div>
 
               {loading && (
                 <motion.div

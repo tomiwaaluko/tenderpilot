@@ -13,6 +13,9 @@ import {
   Brain,
   Zap,
   Clock,
+  GitBranch,
+  ArrowRightLeft,
+  Activity,
 } from "lucide-react";
 
 interface AuditRow {
@@ -38,6 +41,17 @@ const actionConfig: Record<
   created: { icon: Clock, color: "text-gray-700", bg: "bg-gray-100" },
   classified: { icon: Brain, color: "text-purple-700", bg: "bg-purple-100" },
   dispatched: { icon: Zap, color: "text-yellow-700", bg: "bg-yellow-100" },
+  parallel_dispatch: {
+    icon: GitBranch,
+    color: "text-blue-700",
+    bg: "bg-blue-100",
+  },
+  a2a_handoff: {
+    icon: ArrowRightLeft,
+    color: "text-green-700",
+    bg: "bg-green-100",
+  },
+  loop_tick: { icon: Activity, color: "text-purple-700", bg: "bg-purple-100" },
 };
 
 export default function AuditPage() {

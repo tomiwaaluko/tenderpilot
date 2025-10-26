@@ -28,6 +28,17 @@ export async function POST() {
     return NextResponse.json({ ok: true, dispatched: 0 });
   }
 
+  // Log parallel dispatch
+  const caseId = pending[0]?.case_id;
+  if (caseId) {
+    await supabase.from("audit_logs").insert({
+      subject_type: "case",
+      subject_id: caseId,
+      action: "parallel_dispatch",
+      payload: { taskIds: pending.map((t) => t.id) },
+    });
+  }
+
   // Dispatch each task by calling its agent handler directly (optimized)
   const runs = pending.map(async (t) => {
     try {
