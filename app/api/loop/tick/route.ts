@@ -8,7 +8,7 @@ export async function POST() {
   const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { data: msgs, error } = await supabase
     .from("messages")
-    .select("id, case_id, raw_text")
+    .select("id, case_id, topic")
     .gte("created_at", since)
     .order("created_at", { ascending: false });
 

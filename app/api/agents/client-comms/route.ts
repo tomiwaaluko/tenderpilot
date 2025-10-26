@@ -40,12 +40,15 @@ export async function POST(req: NextRequest) {
   let evidenceSummary = "";
   if (evidenceTask?.output?.actions) {
     const tableAction = evidenceTask.output.actions.find(
-      (a: any) => a.kind === "table_insert"
+      (a: { kind: string }) => a.kind === "table_insert"
     );
     if (tableAction?.data?.rows) {
       const rows = tableAction.data.rows.slice(0, 2);
       evidenceSummary = rows
-        .map((r: any) => `${r.provider} (${r.date}): $${r.amount}`)
+        .map(
+          (r: { provider: string; date: string; amount: number }) =>
+            `${r.provider} (${r.date}): $${r.amount}`
+        )
         .join("; ");
     }
   }
@@ -74,16 +77,21 @@ export async function POST(req: NextRequest) {
   try {
     const result = await callGeminiJSON(
       CLIENT_COMMS_PROMPT,
-      msg.raw_text ?? "",
+      msg.topic ?? "",
       mockProposal
     );
     // Accept the model output if it looks like a proposal, otherwise fall back to mock
-    if (result && (result as any).task_type) {
+    if (
+      result &&
+      typeof result === "object" &&
+      "task_type" in result &&
+      result.task_type
+    ) {
       proposal = result;
     } else {
       proposal = mockProposal;
     }
-  } catch (err) {
+  } catch {
     // On error, use the mock proposal
     proposal = mockProposal;
   }
